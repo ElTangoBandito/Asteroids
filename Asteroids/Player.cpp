@@ -20,7 +20,8 @@ Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeY
 	this->life = 1;
 	this->rotation = 90;
 	this->speed = 0.15;
-	this->rotateSpeed = 0.1;
+	this->rotateSpeed = 0.2;
+	this->velocityLife = 0;
 	shipTexture.loadFromFile("Resources/Textures/Ship.png");
 	updateOrigin();
 }
@@ -42,36 +43,44 @@ void Player::update(float deltaTimeIn) {
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+		this->velocityLife = 300;
 		this->velocity.x = std::cos(this->rotation * pi /180.0 ) * speed * deltaTimeIn;
 		this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
-		this->position.x -= this->velocity.x;
-		this->position.y -= this->velocity.y;
-		if (this->position.x + this->width >= this->windowSizeX || this->position.x <= 0) {
-			this->position.x += this->velocity.x;
-			this->position.y += this->velocity.y;
-		}
-		if (this->position.y + this->length >= this->windowSizeY || this->position.y <= 0) {
-			this->position.x += this->velocity.x;
-			this->position.y += this->velocity.y;
-		}
-		
 	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
-		this->velocity.x = std::cos(this->rotation * pi / 180.0) * speed * deltaTimeIn;
-		this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
+	//else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+	//	this->velocity.x = std::cos(this->rotation * pi / 180.0) * speed * deltaTimeIn;
+	//	this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
+	//	this->position.x += this->velocity.x;
+	//	this->position.y += this->velocity.y;
+	//	if (this->position.x + this->width >= this->windowSizeX || this->position.x <= 0) {
+	//		this->position.x -= this->velocity.x;
+	//		this->position.y -= this->velocity.y;
+	//	}
+	//	if (this->position.y + this->length >= this->windowSizeY || this->position.y <= 0) {
+	//		this->position.x -= this->velocity.x;
+	//		this->position.y -= this->velocity.y;
+	//	}
+	//}
+	updateOrigin();
+	if (this->velocityLife >= 30) {
+		this->velocityLife--;
+		this->velocity.x = this->velocity.x * 99 / 100;
+		this->velocity.y = this->velocity.y * 99 / 100;
+	}
+	else {
+		this->velocity = sf::Vector2f(0, 0);
+	}
+	this->position.x -= this->velocity.x;
+	this->position.y -= this->velocity.y;
+	if (this->position.x + this->width >= this->windowSizeX || this->position.x <= 0) {
 		this->position.x += this->velocity.x;
 		this->position.y += this->velocity.y;
-		if (this->position.x + this->width >= this->windowSizeX || this->position.x <= 0) {
-			this->position.x -= this->velocity.x;
-			this->position.y -= this->velocity.y;
-		}
-		if (this->position.y + this->length >= this->windowSizeY || this->position.y <= 0) {
-			this->position.x -= this->velocity.x;
-			this->position.y -= this->velocity.y;
-		}
 	}
-	updateOrigin();
-	this->velocity = sf::Vector2f(0, 0);
+	if (this->position.y + this->length >= this->windowSizeY || this->position.y <= 0) {
+		this->position.x += this->velocity.x;
+		this->position.y += this->velocity.y;
+	}
+	//this->velocity = sf::Vector2f(0, 0);
 }
 
 void Player::draw(sf::RenderWindow* windowIn) {

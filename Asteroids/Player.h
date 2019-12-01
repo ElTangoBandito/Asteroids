@@ -23,6 +23,7 @@ public:
 	float speed;
 	float rotateSpeed;
 	sf::Texture shipTexture;
+	int velocityLife;
 
 public:
 	Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn);

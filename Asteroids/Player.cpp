@@ -23,6 +23,8 @@ Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeY
 	this->rotateSpeed = 0.2;
 	this->velocityLife = 0;
 	shipTexture.loadFromFile("Resources/Textures/Ship.png");
+	this->shipColor = sf::Color::White;
+	this->collided = false;
 	updateOrigin();
 }
 
@@ -61,7 +63,6 @@ void Player::update(float deltaTimeIn) {
 	//		this->position.y -= this->velocity.y;
 	//	}
 	//}
-	updateOrigin();
 	if (this->velocityLife >= 30) {
 		this->velocityLife--;
 		this->velocity.x = this->velocity.x * 99 / 100;
@@ -80,7 +81,13 @@ void Player::update(float deltaTimeIn) {
 		this->position.x += this->velocity.x;
 		this->position.y += this->velocity.y;
 	}
-	//this->velocity = sf::Vector2f(0, 0);
+	if (collided) {
+		this->shipColor = sf::Color::Yellow;
+	}
+	else {
+		this->shipColor = sf::Color::White;
+	}
+	updateOrigin();
 }
 
 void Player::draw(sf::RenderWindow* windowIn) {
@@ -88,8 +95,9 @@ void Player::draw(sf::RenderWindow* windowIn) {
 	rect.setTexture(&this->shipTexture);
 	rect.setPosition(this->origin);
 	rect.setOrigin(this->length/2, this->width/2);
-	rect.setFillColor(sf::Color::White);
+	rect.setFillColor(shipColor);
 	rect.rotate(this->rotation);
 	this->rotation = rect.getRotation();
 	windowIn->draw(rect);
+	this->collided = false;
 }

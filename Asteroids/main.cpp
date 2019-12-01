@@ -11,6 +11,7 @@
 #include <math.h>
 #include <random>
 #include "Player.h"
+#include "Asteroid.h"
 
 float deltaTimePrev = 0.0f;
 float deltaTimeCurrent = 0.0f;
@@ -26,21 +27,35 @@ void updateDT(sf::Clock* clockIn) {
 	deltaTime = deltaTimeCurrent - deltaTimePrev;
 }
 
+void checkShipCollision(Asteroid* asteroidIn, Player* playerIn) {
+	float distance = sqrt(pow((playerIn->origin.x - asteroidIn->origin.x), 2) + pow((playerIn->origin.y - asteroidIn->origin.y), 2));
+	float sum = playerIn->length/2 + asteroidIn->radius;
+	if (distance < sum) {
+		playerIn->collided = true;
+	}
+}
+
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(windowSizeX, windowSizeY), "My Window!");
 	window.setVerticalSyncEnabled(true);
 	sf::Clock clock;
 
+	//Asteroid vector
+	std::vector <Asteroid*> asteroidList;
 
 	//player stuff
 	Player player(playerLength, playerWidth, windowSizeX, windowSizeY);
 
+	//Asteroid stuff
+	Asteroid testAsteroid(20.0f, &asteroidList, sf::Vector2f(400, 400));
+	Asteroid testAsteroid2(12.0f, &asteroidList, sf::Vector2f(300, 400));
+	Asteroid testAsteroid3(7.0f, &asteroidList, sf::Vector2f(200, 400));
+	asteroidList.push_back(&testAsteroid);
+	asteroidList.push_back(&testAsteroid2);
+	asteroidList.push_back(&testAsteroid3);
 	while (window.isOpen())
 	{
-		//float dt = clock.getElapsedTime().asMilliseconds();
-		//clock = sf::Clock();
-
 		updateDT(&clock);
 
 		sf::Event event;
@@ -53,7 +68,11 @@ int main()
 
 		player.update(deltaTime);
 		player.draw(&window);
-
+		for (int i = 0; i < asteroidList.size(); i++) {
+			checkShipCollision(asteroidList.at(i), &player);
+			asteroidList.at(i)->update(deltaTime);
+			asteroidList.at(i)->draw(&window);
+		}
 
 		window.display();
 

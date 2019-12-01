@@ -8,32 +8,28 @@
 #include <SFML/Main.hpp>
 #include <iostream>
 
-class Player
+class Asteroid
 {
-public: 
-	float length;
-	float width;
-	int windowSizeX;
-	int windowSizeY;
+public:
+	float radius;
 	sf::Vector2f position;
 	sf::Vector2f origin;
 	sf::Vector2f velocity;
 	int life;
-	float rotation;
-	float speed;
-	float rotateSpeed;
-	sf::Texture shipTexture;
-	int velocityLife;
-	sf::Color shipColor;
-	bool collided;
+	sf::Texture* asteroidTexture;
+	std::vector<Asteroid*>* collidedList;
+	double pi;
+	sf::Vector2f upLeft;
+	sf::Vector2f downLeft;
+	sf::Vector2f upRight;
+	sf::Vector2f downRight;
 
 public:
-	Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn);
-	~Player();
+	Asteroid(float radiusIn, std::vector<Asteroid*>* asteroidListIn, sf::Vector2f positionIn);//, sf::Texture* asteroidTextureIn);
+	~Asteroid();
 
 	void updateOrigin();
 	void update(float deltaTime);
 	void draw(sf::RenderWindow* windowIn);
-
 };
 

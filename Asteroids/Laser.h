@@ -7,30 +7,24 @@
 #include <SFML/OpenGL.hpp>
 #include <SFML/Main.hpp>
 #include <iostream>
-
-class Player
+class Laser
 {
-public: 
-	float length;
-	float width;
+public:
+	float radius;
 	int windowSizeX;
 	int windowSizeY;
 	sf::Vector2f position;
-	sf::Vector2f origin;
 	sf::Vector2f velocity;
-	int life;
+	sf::Vector2f origin;
 	float rotation;
 	float speed;
-	float rotateSpeed;
-	sf::Texture shipTexture;
-	int velocityLife;
-	sf::Color shipColor;
-	bool collided;
-	int fireRate;
+	sf::Color laserColor;
+	bool outOfRange;
+	double pi;
 
 public:
-	Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn);
-	~Player();
+	Laser(sf::Vector2f positionIn, int windowSizeXIn, int windowSizeYIn, float rotationIn);
+	~Laser();
 
 	void updateOrigin();
 	void update(float deltaTime);

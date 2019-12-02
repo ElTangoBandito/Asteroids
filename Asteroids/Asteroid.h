@@ -17,15 +17,20 @@ public:
 	sf::Vector2f velocity;
 	int life;
 	sf::Texture* asteroidTexture;
+	sf::Color asteroidColor;
 	std::vector<Asteroid*>* collidedList;
 	double pi;
 	sf::Vector2f upLeft;
 	sf::Vector2f downLeft;
 	sf::Vector2f upRight;
 	sf::Vector2f downRight;
+	int windowSizeX;
+	int windowSizeY;
+	int collideLifeColor;
+	bool collidedWithAsteroid;
 
 public:
-	Asteroid(float radiusIn, std::vector<Asteroid*>* asteroidListIn, sf::Vector2f positionIn);//, sf::Texture* asteroidTextureIn);
+	Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeX, int windowSizeY);//, sf::Texture* asteroidTextureIn);
 	~Asteroid();
 
 	void updateOrigin();

@@ -10,12 +10,28 @@
 #include <math.h>
 #include <iostream>
 
-Asteroid::Asteroid(float radiusIn, std::vector<Asteroid*>* asteroidListIn, sf::Vector2f positionIn){//, sf::Texture* asteroidTextureIn) {
-	this->radius = radiusIn;
-	this->collidedList = asteroidListIn;
+Asteroid::Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeXIn, int windowSizeYIn){//, sf::Texture* asteroidTextureIn) {
 	this->position = positionIn;
-	this->life = 3;
+	this->life = lifeIn;
+	switch (this->life) {
+	case 1:
+		this->radius = 7.0f;
+		break;
+	case 2:
+		this->radius = 12.0f;
+		break;
+	case 3:
+		this->radius = 20.0f;
+		break;
+	}
 	this->pi = 3.14159265358979323846;
+	this->asteroidColor = sf::Color::White;
+	this->windowSizeX = windowSizeXIn;
+	this->windowSizeY = windowSizeYIn;
+	this->velocity = sf::Vector2f(0.0f, 0.0f);
+	this->collideLifeColor = 0;
+	this->collidedWithAsteroid = false;
+	this->collidedList = new std::vector<Asteroid*>;
 	updateOrigin();
 	//this->asteroidTexture = asteroidTextureIn;
 
@@ -41,6 +57,29 @@ void Asteroid::updateOrigin() {
 }
 
 void Asteroid::update(float deltaTime) {
+	this->position.x += this->velocity.x * deltaTime;
+	this->position.y += this->velocity.y * deltaTime;
+	if (this->position.x <= -this->radius * 2) {
+		this->position.x = this->windowSizeX;
+	}
+	else if (this->position.x >= windowSizeX) {
+		this->position.x = -this->radius*2;
+	}
+	if (this->position.y <= -this->radius * 2) {
+		this->position.y = this->windowSizeY;
+	}
+	else if (this->position.y >= windowSizeY) {
+		this->position.y = -this->radius * 2;
+	}
+	if (collideLifeColor > 0) {
+		collideLifeColor--;
+		asteroidColor = sf::Color::Yellow;
+	}
+	else {
+		asteroidColor = sf::Color::White;
+	}
+	this->collidedWithAsteroid = false;
+	this->collidedList->clear();
 	updateOrigin();
 }
 
@@ -48,6 +87,6 @@ void Asteroid::draw(sf::RenderWindow* windowIn) {
 	sf::CircleShape c(this->radius);
 	c.setPosition(this->origin);
 	c.setOrigin(this->radius, this->radius);
-	c.setFillColor(sf::Color::White);
+	c.setFillColor(asteroidColor);
 	windowIn->draw(c);
 }

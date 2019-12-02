@@ -25,6 +25,7 @@ Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeY
 	shipTexture.loadFromFile("Resources/Textures/Ship.png");
 	this->shipColor = sf::Color::White;
 	this->collided = false;
+	this->fireRate = 0;
 	updateOrigin();
 }
 
@@ -49,24 +50,11 @@ void Player::update(float deltaTimeIn) {
 		this->velocity.x = std::cos(this->rotation * pi /180.0 ) * speed * deltaTimeIn;
 		this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
 	}
-	//else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
-	//	this->velocity.x = std::cos(this->rotation * pi / 180.0) * speed * deltaTimeIn;
-	//	this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
-	//	this->position.x += this->velocity.x;
-	//	this->position.y += this->velocity.y;
-	//	if (this->position.x + this->width >= this->windowSizeX || this->position.x <= 0) {
-	//		this->position.x -= this->velocity.x;
-	//		this->position.y -= this->velocity.y;
-	//	}
-	//	if (this->position.y + this->length >= this->windowSizeY || this->position.y <= 0) {
-	//		this->position.x -= this->velocity.x;
-	//		this->position.y -= this->velocity.y;
-	//	}
-	//}
-	if (this->velocityLife >= 30) {
+
+	if (this->velocityLife >= 0) {
 		this->velocityLife--;
-		this->velocity.x = this->velocity.x * 99 / 100;
-		this->velocity.y = this->velocity.y * 99 / 100;
+		this->velocity.x = this->velocity.x * .99;
+		this->velocity.y = this->velocity.y * .99;
 	}
 	else {
 		this->velocity = sf::Vector2f(0, 0);
@@ -87,6 +75,9 @@ void Player::update(float deltaTimeIn) {
 	else {
 		this->shipColor = sf::Color::White;
 	}
+	if (this->fireRate > 0) {
+		this->fireRate--;
+	}
 	updateOrigin();
 }
 
@@ -99,5 +90,4 @@ void Player::draw(sf::RenderWindow* windowIn) {
 	rect.rotate(this->rotation);
 	this->rotation = rect.getRotation();
 	windowIn->draw(rect);
-	this->collided = false;
 }

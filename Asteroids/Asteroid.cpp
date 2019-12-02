@@ -32,13 +32,37 @@ Asteroid::Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeXIn, int w
 	this->collideLifeColor = 0;
 	this->collidedWithAsteroid = false;
 	this->collidedList = new std::vector<Asteroid*>;
+	this->markedForDelete = false;
 	updateOrigin();
 	//this->asteroidTexture = asteroidTextureIn;
-
 }
 
-
 Asteroid::~Asteroid(){}
+
+void Asteroid::spawnChildren(std::vector <Asteroid*>* asteroidListIn, int stageLevelIn) {
+	int randomX = rand() % (int)this->radius - (int)this->radius;
+	int randomY = rand() % (int)this->radius - (int)this->radius;
+	int speedModifier = 20;
+	float xVelocity = (rand() % (speedModifier + stageLevelIn) - (speedModifier / 2)) * 0.01;
+	float yVelocity = (rand() % (speedModifier + stageLevelIn) - (speedModifier / 2)) * 0.01;
+	Asteroid* newAsteroid;
+	newAsteroid = new Asteroid(this->life, sf::Vector2f(this->origin.x + randomX, this->origin.y + randomY), windowSizeX, windowSizeY);
+	if (randomX >= 0) {
+		xVelocity = abs(xVelocity);
+	}
+	else {
+		xVelocity = -abs(xVelocity);
+	}
+	if (randomY >= 0) {
+		yVelocity = abs(yVelocity);
+	}
+	else {
+		yVelocity = -abs(yVelocity);
+	}
+
+	newAsteroid->velocity = sf::Vector2f(xVelocity, yVelocity);
+	asteroidListIn->push_back(newAsteroid);
+}
 
 void Asteroid::updateOrigin() {
 	this->origin.x = this->position.x + radius;

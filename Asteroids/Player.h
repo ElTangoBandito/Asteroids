@@ -26,14 +26,23 @@ public:
 	int velocityLife;
 	sf::Color shipColor;
 	bool collided;
+	int invincibleTime;
 	int fireRate;
+	sf::Vector2f upLeft;
+	sf::Vector2f downLeft;
+	sf::Vector2f upRight;
+	sf::Vector2f downRight;
+	float radius;
+	sf::Mouse playerMouse;
+	bool mouseControl;
 
 public:
 	Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn);
 	~Player();
 
+	void reset();
 	void updateOrigin();
-	void update(float deltaTime);
+	void update(float deltaTime, sf::Vector2f mouseCoordIn);
 	void draw(sf::RenderWindow* windowIn);
 
 };

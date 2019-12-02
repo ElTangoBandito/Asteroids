@@ -26,26 +26,71 @@ Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeY
 	this->shipColor = sf::Color::White;
 	this->collided = false;
 	this->fireRate = 0;
+	this->invincibleTime = 200;
+	this->radius = this->length / 2;
+	this->mouseControl = false;
 	updateOrigin();
 }
 
 Player::~Player() {};
 
+void Player::reset() {
+	this->velocityLife = 0;
+	this->rotation = 90;
+	this->collided = false;
+	this->life = 1;
+}
+
 void Player::updateOrigin() {
 	this->origin.x = this->position.x + this->width/2;
 	this->origin.y = this->position.y + this->length / 2;
+	this->upLeft = this->position;
+	this->upRight.x = this->position.x + this->radius * 2;
+	this->upRight.y = this->position.y;
+	this->downLeft.x = this->position.x;
+	this->downLeft.y = this->position.y + this->radius * 2;
+	this->downRight.x = this->position.x + this->radius * 2;
+	this->downRight.y = this->position.y + this->radius * 2;
 }
 
-void Player::update(float deltaTimeIn) {
+void Player::update(float deltaTimeIn, sf::Vector2f mouseCoordIn) {
 	double pi = 3.14159265358979323846;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+	bool goRight = false;
+	bool goLeft = false;
+	if (this->mouseControl) {
+		float dx = this->origin.x - mouseCoordIn.x;
+		float dy = this->origin.y - mouseCoordIn.y;
+		float dRotation = ((atan2(dy, dx)) * 180 / pi);
+		if (dRotation < 0) {
+			dRotation += 360;
+		}
+		float dRight = abs(this->rotation - dRotation);
+		if (dRight < 180) {
+			if (this->rotation < dRotation) {
+				goRight = true;
+			}
+			else {
+				goLeft = true;
+			}
+		}
+		else {
+			if (this->rotation < dRotation) {
+				goLeft = true;
+			}
+			else {
+				goRight = true;
+			}
+		}
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || goLeft) {
 		this->rotation -= rotateSpeed * deltaTimeIn;
 	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || goRight) {
 		this->rotation += rotateSpeed * deltaTimeIn;
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || playerMouse.isButtonPressed(sf::Mouse::Button::Right)) {
 		this->velocityLife = 300;
 		this->velocity.x = std::cos(this->rotation * pi /180.0 ) * speed * deltaTimeIn;
 		this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
@@ -73,10 +118,18 @@ void Player::update(float deltaTimeIn) {
 		this->shipColor = sf::Color::Yellow;
 	}
 	else {
-		this->shipColor = sf::Color::White;
+		//this->shipColor = sf::Color::White;
 	}
 	if (this->fireRate > 0) {
 		this->fireRate--;
+	}
+	if (this->invincibleTime > 0) {
+		invincibleTime--;
+		if (this->invincibleTime % 5 == 0) {
+			this->shipColor = sf::Color(rand() % 256, rand() % 256, rand() % 256, 255);
+		}
+	} else {
+		this->shipColor = sf::Color::White;
 	}
 	updateOrigin();
 }

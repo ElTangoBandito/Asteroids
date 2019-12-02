@@ -28,11 +28,13 @@ public:
 	int windowSizeY;
 	int collideLifeColor;
 	bool collidedWithAsteroid;
+	bool markedForDelete;
 
 public:
 	Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeX, int windowSizeY);//, sf::Texture* asteroidTextureIn);
 	~Asteroid();
 
+	void spawnChildren(std::vector <Asteroid*>* asteroidListIn, int stageLevelIn);
 	void updateOrigin();
 	void update(float deltaTime);
 	void draw(sf::RenderWindow* windowIn);

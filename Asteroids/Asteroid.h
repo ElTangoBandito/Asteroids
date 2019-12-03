@@ -29,9 +29,12 @@ public:
 	int collideLifeColor;
 	bool collidedWithAsteroid;
 	bool markedForDelete;
+	int rotation;
+	int rotationRate;
+	int soundFreeLife;
 
 public:
-	Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeX, int windowSizeY);//, sf::Texture* asteroidTextureIn);
+	Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeX, int windowSizeY, sf::Texture* asteroidTextureIn);//, sf::Texture* asteroidTextureIn);
 	~Asteroid();
 
 	void spawnChildren(std::vector <Asteroid*>* asteroidListIn, int stageLevelIn);

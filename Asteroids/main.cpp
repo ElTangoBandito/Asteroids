@@ -36,6 +36,29 @@ bool gameStartSelected = true;
 bool exitGameSelected = false;
 bool toggleMousePressed = false;
 
+sf::Texture asteroidTexture;
+sf::SoundBuffer gameOverBuffer;
+sf::SoundBuffer shipExplosionBuffer;
+sf::SoundBuffer hitBuffer;
+sf::SoundBuffer hit2Buffer;
+sf::SoundBuffer laserBuffer;
+sf::SoundBuffer victoryBuffer;
+sf::SoundBuffer explosionBuffer;
+sf::SoundBuffer selectBuffer;
+sf::SoundBuffer gameStartBuffer;
+sf::Sound gameOverSound;
+sf::Sound shipExplosionSound;
+sf::Sound hitSound;
+sf::Sound hit2Sound;
+sf::Sound laserSound;
+sf::Sound victorySound;
+sf::Sound explosionSound;
+sf::Sound selectSound;
+sf::Sound gameStartSound;
+bool selectPlayed = false;
+
+
+
 void updateDT(sf::Clock* clockIn) {
 	deltaTimePrev = deltaTimeCurrent;
 	deltaTimeCurrent = clockIn->getElapsedTime().asMilliseconds();
@@ -49,7 +72,9 @@ void checkShipCollision(Asteroid* asteroidIn, Player* playerIn, std::vector<Expl
 		playerLives--;
 		shipExplosionOrigin = playerIn->origin;
 		shipExplosionLife = 40;
+		shipExplosionSound.play();
 		if (playerLives == 0) {
+			gameOverSound.play();
 			gameOver = true;
 		}
 		else {
@@ -92,8 +117,8 @@ void checkAsteroidCollision(Asteroid* asteroidIn, Asteroid* secondAsteroidIn) {
 	float distance = sqrt(pow((secondAsteroidIn->origin.x - asteroidIn->origin.x), 2) + pow((secondAsteroidIn->origin.y - asteroidIn->origin.y), 2));
 	float sum = secondAsteroidIn->radius + asteroidIn->radius;
 	if (distance < sum ){
-		asteroidIn->collideLifeColor = 30;
-		secondAsteroidIn->collideLifeColor = 30;
+		//asteroidIn->collideLifeColor = 30;
+		//secondAsteroidIn->collideLifeColor = 30;
 
 		bool alreadyCollided = false;
 
@@ -109,6 +134,20 @@ void checkAsteroidCollision(Asteroid* asteroidIn, Asteroid* secondAsteroidIn) {
 		}
 
 		if (!alreadyCollided) {
+			int soundPlayRand = rand() % 2;
+			if (asteroidIn->soundFreeLife > 0 || secondAsteroidIn->soundFreeLife > 0) {
+				soundPlayRand = 2;
+			}
+			switch (soundPlayRand) {
+				case 0:
+					hitSound.play();
+					break;
+				case 1:
+					hit2Sound.play();
+					break;
+				default:
+					break;
+			}
 			asteroidIn->collidedList->push_back(secondAsteroidIn);
 			secondAsteroidIn->collidedList->push_back(asteroidIn);
 			if (originOne.x >= originTwo.x) {
@@ -204,7 +243,7 @@ void spawnAsteroid(std::vector <Asteroid*>* listIn) {
 	float xVelocity = (rand() % (speedModifier + stageLevel) - (speedModifier/2)) * 0.01;
 	float yVelocity = (rand() % (speedModifier + stageLevel) - (speedModifier/2)) * 0.01;
 	Asteroid* newAsteroid;
-	newAsteroid = new Asteroid(3, sf::Vector2f(randomX, randomY), windowSizeX, windowSizeY);
+	newAsteroid = new Asteroid(3, sf::Vector2f(randomX, randomY), windowSizeX, windowSizeY, &asteroidTexture);
 	newAsteroid->velocity = sf::Vector2f(xVelocity, yVelocity);
 	listIn->push_back(newAsteroid);
 }
@@ -222,6 +261,7 @@ void reset(std::vector<Laser*>* laserListIn, std::vector<Asteroid*>* asteroidLis
 	gameOver = false;
 	stageLevel = 1;
 	playerLives = 3;
+	gameScore = 0;
 	laserListIn->clear();
 	asteroidListIn->clear();
 	playerIn->position.x = windowSizeX / 2 - playerIn->width / 2;
@@ -250,6 +290,7 @@ int main()
 	std::vector <Asteroid*> asteroidList;
 	std::vector <int> asteroidRemoveList;
 	createStage(&asteroidList);
+	asteroidTexture.loadFromFile("Resources/Textures/Asteroid.jpg");
 
 	//player stuff
 	Player player(playerLength, playerWidth, windowSizeX, windowSizeY);
@@ -262,6 +303,38 @@ int main()
 	std::vector <Explosion*> explosionList;
 	std::vector <int> explosionRemoveList;
 
+	//sound stuff
+	if (!gameOverBuffer.loadFromFile("Resources/Sounds/Game Over.wav"))
+		return -1;
+	if (!shipExplosionBuffer.loadFromFile("Resources/Sounds/ShipExplosion.wav"))
+		return -1;
+	if (!hitBuffer.loadFromFile("Resources/Sounds/Hit.wav"))
+		return -1;
+	if (!hit2Buffer.loadFromFile("Resources/Sounds/Hit2.wav"))
+		return -1;
+	if (!laserBuffer.loadFromFile("Resources/Sounds/Laser.wav"))
+		return -1;
+	if (!victoryBuffer.loadFromFile("Resources/Sounds/Victory.wav"))
+		return -1;
+	if (!explosionBuffer.loadFromFile("Resources/Sounds/Explosion.wav"))
+		return -1;
+	if (!selectBuffer.loadFromFile("Resources/Sounds/Select.wav"))
+		return -1;
+	if (!gameStartBuffer.loadFromFile("Resources/Sounds/Start.wav"))
+		return -1;
+	gameOverSound.setBuffer(gameOverBuffer);
+	shipExplosionSound.setBuffer(shipExplosionBuffer);
+	hitSound.setBuffer(hitBuffer);
+	hitSound.setVolume(50);
+	hit2Sound.setBuffer(hit2Buffer);
+	hit2Sound.setVolume(50);
+	laserSound.setBuffer(laserBuffer);
+	laserSound.setVolume(50);
+	victorySound.setBuffer(victoryBuffer);
+	explosionSound.setBuffer(explosionBuffer);
+	selectSound.setBuffer(selectBuffer);
+	gameStartSound.setBuffer(gameStartBuffer);
+	gameStartSound.setVolume(50);
 
 	//font stuff
 	sf::Font font;
@@ -359,6 +432,7 @@ int main()
 			player.fireRate = 30;
 			Laser* newLaser;
 			newLaser = new Laser(player.origin, windowSizeX, windowSizeY, player.rotation);
+			laserSound.play();
 			laserList.push_back(newLaser);
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::M)) {
@@ -456,6 +530,7 @@ int main()
 			e = new Explosion(asteroidList.at(asteroidRemoveList.at(i))->origin, explosionType);
 			explosionList.push_back(e);
 			asteroidList.erase(asteroidList.begin() + asteroidRemoveList.at(i));
+			explosionSound.play();
 		}
 		asteroidRemoveList.clear();
 
@@ -470,6 +545,7 @@ int main()
 			player.position.y = windowSizeY / 2 - player.length / 2;
 			player.invincibleTime = 200;
 			laserList.clear();
+			victorySound.play();
 			createStage(&asteroidList);
 		}
 
@@ -497,18 +573,33 @@ int main()
 					return -1;
 				}
 				if (gameStartSelected) {
+					gameStartSound.play();
 					gameStart = true;
 				}
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
 				startGameButtonText.setFillColor(sf::Color::Blue);
 				exitGameText.setFillColor(sf::Color::White);
+				if (!selectPlayed && !gameStartSelected) {
+					selectSound.play();
+					selectPlayed = true;
+				}
+				else {
+					selectPlayed = false;
+				}
 				gameStartSelected = true;
 				exitGameSelected = false;
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
 				startGameButtonText.setFillColor(sf::Color::White);
 				exitGameText.setFillColor(sf::Color::Blue);
+				if (!selectPlayed && !exitGameSelected) {
+					selectSound.play();
+					selectPlayed = true;
+				}
+				else {
+					selectPlayed = false;
+				}
 				gameStartSelected = false;
 				exitGameSelected = true;
 			}

@@ -10,7 +10,7 @@
 #include <math.h>
 #include <iostream>
 
-Asteroid::Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeXIn, int windowSizeYIn){//, sf::Texture* asteroidTextureIn) {
+Asteroid::Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeXIn, int windowSizeYIn, sf::Texture* asteroidTextureIn){//, sf::Texture* asteroidTextureIn) {
 	this->position = positionIn;
 	this->life = lifeIn;
 	switch (this->life) {
@@ -33,6 +33,10 @@ Asteroid::Asteroid(int lifeIn, sf::Vector2f positionIn, int windowSizeXIn, int w
 	this->collidedWithAsteroid = false;
 	this->collidedList = new std::vector<Asteroid*>;
 	this->markedForDelete = false;
+	this->asteroidTexture = asteroidTextureIn;
+	this->rotation = 0;
+	this->rotationRate = rand() % 20 - 10;
+	this->soundFreeLife = 10;
 	updateOrigin();
 	//this->asteroidTexture = asteroidTextureIn;
 }
@@ -46,7 +50,7 @@ void Asteroid::spawnChildren(std::vector <Asteroid*>* asteroidListIn, int stageL
 	float xVelocity = (rand() % (speedModifier + stageLevelIn) - (speedModifier / 2)) * 0.01;
 	float yVelocity = (rand() % (speedModifier + stageLevelIn) - (speedModifier / 2)) * 0.01;
 	Asteroid* newAsteroid;
-	newAsteroid = new Asteroid(this->life, sf::Vector2f(this->origin.x + randomX, this->origin.y + randomY), windowSizeX, windowSizeY);
+	newAsteroid = new Asteroid(this->life, sf::Vector2f(this->origin.x + randomX, this->origin.y + randomY), windowSizeX, windowSizeY, this->asteroidTexture);
 	if (randomX >= 0) {
 		xVelocity = abs(xVelocity);
 	}
@@ -104,6 +108,9 @@ void Asteroid::update(float deltaTime) {
 	}
 	this->collidedWithAsteroid = false;
 	this->collidedList->clear();
+	if (this->soundFreeLife > 0) {
+		this->soundFreeLife--;
+	}
 	updateOrigin();
 }
 
@@ -112,5 +119,8 @@ void Asteroid::draw(sf::RenderWindow* windowIn) {
 	c.setPosition(this->origin);
 	c.setOrigin(this->radius, this->radius);
 	c.setFillColor(asteroidColor);
+	c.setTexture(this->asteroidTexture);
+	c.setRotation(this->rotation);
+	this->rotation += this->rotationRate;
 	windowIn->draw(c);
 }

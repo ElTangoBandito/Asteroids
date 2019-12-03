@@ -10,7 +10,7 @@
 #include <math.h>
 #include <iostream>
 
-Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn) {
+Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn, sf::Sound* soundIn) {
 	this->length = lengthIn;
 	this->width = widthIn;
 	this->windowSizeX = windowSizeXIn;
@@ -29,6 +29,8 @@ Player::Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeY
 	this->invincibleTime = 200;
 	this->radius = this->length / 2;
 	this->mouseControl = false;
+	this->boosterSound = soundIn;
+	this->boostSoundPlayed = false;
 	updateOrigin();
 }
 
@@ -91,9 +93,22 @@ void Player::update(float deltaTimeIn, sf::Vector2f mouseCoordIn) {
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || playerMouse.isButtonPressed(sf::Mouse::Button::Right)) {
+		if (this->invincibleTime == 0) {
+			this->shipColor = sf::Color::Yellow;
+		}
 		this->velocityLife = 300;
 		this->velocity.x = std::cos(this->rotation * pi /180.0 ) * speed * deltaTimeIn;
 		this->velocity.y = std::sin(this->rotation * pi / 180.0) * speed * deltaTimeIn;
+		if (!this->boostSoundPlayed) {
+			this->boostSoundPlayed = true;
+			this->boosterSound->play();
+		}
+	}
+	else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && !playerMouse.isButtonPressed(sf::Mouse::Button::Right)) {
+		this->boostSoundPlayed = false;
+		if (this->invincibleTime == 0) {
+			this->shipColor = sf::Color::White;
+		}
 	}
 
 	if (this->velocityLife >= 0) {
@@ -129,7 +144,7 @@ void Player::update(float deltaTimeIn, sf::Vector2f mouseCoordIn) {
 			this->shipColor = sf::Color(rand() % 256, rand() % 256, rand() % 256, 255);
 		}
 	} else {
-		this->shipColor = sf::Color::White;
+		//this->shipColor = sf::Color::White;
 	}
 	updateOrigin();
 }

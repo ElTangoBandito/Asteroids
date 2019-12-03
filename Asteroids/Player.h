@@ -35,9 +35,11 @@ public:
 	float radius;
 	sf::Mouse playerMouse;
 	bool mouseControl;
+	sf::Sound* boosterSound;
+	bool boostSoundPlayed;
 
 public:
-	Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn);
+	Player(float lengthIn, float widthIn, int windowSizeXIn, int windowSizeYIn, sf::Sound* soundIn);
 	~Player();
 
 	void reset();

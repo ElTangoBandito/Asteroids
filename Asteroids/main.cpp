@@ -46,6 +46,7 @@ sf::SoundBuffer victoryBuffer;
 sf::SoundBuffer explosionBuffer;
 sf::SoundBuffer selectBuffer;
 sf::SoundBuffer gameStartBuffer;
+sf::SoundBuffer shipBoosterBuffer;
 sf::Sound gameOverSound;
 sf::Sound shipExplosionSound;
 sf::Sound hitSound;
@@ -55,6 +56,7 @@ sf::Sound victorySound;
 sf::Sound explosionSound;
 sf::Sound selectSound;
 sf::Sound gameStartSound;
+sf::Sound shipBoosterSound;
 bool selectPlayed = false;
 
 
@@ -291,9 +293,12 @@ int main()
 	std::vector <int> asteroidRemoveList;
 	createStage(&asteroidList);
 	asteroidTexture.loadFromFile("Resources/Textures/Asteroid.jpg");
+	if (!shipBoosterBuffer.loadFromFile("Resources/Sounds/Boost.wav"))
+		return -1;
+	shipBoosterSound.setBuffer(shipBoosterBuffer);
 
 	//player stuff
-	Player player(playerLength, playerWidth, windowSizeX, windowSizeY);
+	Player player(playerLength, playerWidth, windowSizeX, windowSizeY, &shipBoosterSound);
 
 	//laser stuff
 	std::vector <Laser*> laserList;

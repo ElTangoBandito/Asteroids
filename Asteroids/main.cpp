@@ -13,6 +13,7 @@
 #include "Player.h"
 #include "Asteroid.h"
 #include "Laser.h"
+#include "Explosion.h"
 
 int findBucket(int xIn, int yIn);
 void spawnAsteroid(std::vector <Asteroid*>* listIn);
@@ -28,9 +29,12 @@ bool gameOver = false;
 int stageLevel = 1;
 int playerLives = 3;
 int gameScore = 0;
+int shipExplosionLife = 0;
+sf::Vector2f shipExplosionOrigin;
 bool gameStart = false;
 bool gameStartSelected = true;
 bool exitGameSelected = false;
+bool toggleMousePressed = false;
 
 void updateDT(sf::Clock* clockIn) {
 	deltaTimePrev = deltaTimeCurrent;
@@ -38,11 +42,13 @@ void updateDT(sf::Clock* clockIn) {
 	deltaTime = deltaTimeCurrent - deltaTimePrev;
 }
 
-void checkShipCollision(Asteroid* asteroidIn, Player* playerIn) {
+void checkShipCollision(Asteroid* asteroidIn, Player* playerIn, std::vector<Explosion*>* explosionListIn) {
 	float distance = sqrt(pow((playerIn->origin.x - asteroidIn->origin.x), 2) + pow((playerIn->origin.y - asteroidIn->origin.y), 2));
 	float sum = playerIn->length/2 + asteroidIn->radius;
 	if (distance < sum && playerIn->invincibleTime == 0 && !gameOver) {
 		playerLives--;
+		shipExplosionOrigin = playerIn->origin;
+		shipExplosionLife = 40;
 		if (playerLives == 0) {
 			gameOver = true;
 		}
@@ -51,32 +57,33 @@ void checkShipCollision(Asteroid* asteroidIn, Player* playerIn) {
 			playerIn->position.y = windowSizeY / 2 - playerIn->length / 2;
 			playerIn->invincibleTime = 200;
 		}
+
 	}
 }
 
-void checkShipCollisionLists(Player* playerIn, std::vector <std::vector<Asteroid*>*>* bucketListIn) {
+void checkShipCollisionLists(Player* playerIn, std::vector <std::vector<Asteroid*>*>* bucketListIn, std::vector<Explosion*>* explosionListIn) {
 	int upLeft = findBucket(playerIn->upLeft.x, playerIn->upLeft.y);
 	int upRight = findBucket(playerIn->upRight.x, playerIn->upRight.y);
 	int downLeft = findBucket(playerIn->downLeft.x, playerIn->downLeft.y);
 	int downRight = findBucket(playerIn->downRight.x, playerIn->downRight.y);
 	if (upLeft != -1) {
 		for (int j = 0; j < bucketListIn->at(upLeft)->size(); j++) {
-			checkShipCollision(bucketListIn->at(upLeft)->at(j), playerIn);
+			checkShipCollision(bucketListIn->at(upLeft)->at(j), playerIn, explosionListIn);
 		}
 	}
 	if (upRight != -1 && upRight != upLeft) {
 		for (int j = 0; j < bucketListIn->at(upRight)->size(); j++) {
-			checkShipCollision(bucketListIn->at(upRight)->at(j), playerIn);
+			checkShipCollision(bucketListIn->at(upRight)->at(j), playerIn, explosionListIn);
 		}
 	}
 	if (downLeft != -1 && downLeft != upLeft && downLeft != upRight) {
 		for (int j = 0; j < bucketListIn->at(downLeft)->size(); j++) {
-			checkShipCollision(bucketListIn->at(downLeft)->at(j), playerIn);
+			checkShipCollision(bucketListIn->at(downLeft)->at(j), playerIn, explosionListIn);
 		}
 	}
 	if (downRight != -1 && downRight != upLeft && downRight != upRight && downRight != downLeft) {
 		for (int j = 0; j < bucketListIn->at(downRight)->size(); j++) {
-			checkShipCollision(bucketListIn->at(downRight)->at(j), playerIn);
+			checkShipCollision(bucketListIn->at(downRight)->at(j), playerIn, explosionListIn);
 		}
 	}
 }
@@ -239,19 +246,22 @@ int main()
 		bucketList.push_back(asteroidBucketList);
 	}
 
-	//Asteroid vector
+	//Asteroid stuff
 	std::vector <Asteroid*> asteroidList;
 	std::vector <int> asteroidRemoveList;
+	createStage(&asteroidList);
 
 	//player stuff
 	Player player(playerLength, playerWidth, windowSizeX, windowSizeY);
 
-	//Asteroid stuff
-	createStage(&asteroidList);
-
 	//laser stuff
 	std::vector <Laser*> laserList;
 	std::vector <int> laserRemoveList;
+
+	//explosion stuff
+	std::vector <Explosion*> explosionList;
+	std::vector <int> explosionRemoveList;
+
 
 	//font stuff
 	sf::Font font;
@@ -345,22 +355,27 @@ int main()
 		for (int i = 0; i < asteroidList.size(); i++) {
 			placeIntoBuckets(&bucketList, asteroidList.at(i));
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) || playerMouse.isButtonPressed(sf::Mouse::Button::Left) && player.fireRate == 0 && gameStart && !gameOver) {
+		if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) || playerMouse.isButtonPressed(sf::Mouse::Button::Left)) && player.fireRate == 0 && gameStart && !gameOver) {
 			player.fireRate = 30;
 			Laser* newLaser;
 			newLaser = new Laser(player.origin, windowSizeX, windowSizeY, player.rotation);
 			laserList.push_back(newLaser);
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::M)) {
+			if (!toggleMousePressed) {
+				toggleMousePressed = true;
+			}
+		}
+		else if (toggleMousePressed) {
 			if (player.mouseControl) {
 				player.mouseControl = false;
 			}
 			else {
 				player.mouseControl = true;
 			}
+			toggleMousePressed = false;
 		}
 		//collision stuff
-
 		for (int i = 0; i < bucketList.size(); i++) {
 			if (bucketList.at(i)->size() > 1) {
 				checkAsteroidListCollision(bucketList.at(i));
@@ -384,25 +399,43 @@ int main()
 		if (gameStart && !gameOver) {
 			player.update(deltaTime, mouseCoord);
 			player.draw(&window);
-			checkShipCollisionLists(&player, &bucketList);
+			checkShipCollisionLists(&player, &bucketList, &explosionList);
 		}
-		//old ship collision
+
 		for (int i = 0; i < asteroidList.size(); i++) {
-			//checkShipCollision(asteroidList.at(i), &player);
 			if (asteroidList.at(i)->markedForDelete) {
 				asteroidRemoveList.push_back(i);
 			}
 			asteroidList.at(i)->update(deltaTime);
 			asteroidList.at(i)->draw(&window);
 		}
+		//render explosions
+		for (int i = 0; i < explosionList.size(); i++) {
+			explosionList.at(i)->update(deltaTime);
+			explosionList.at(i)->draw(&window);
+			if (explosionList.at(i)->life == 0) {
+				explosionRemoveList.push_back(i);
+			}
+		}
 
-		//delete lasers & asteroids
+
+		//delete lasers & asteroids, explosions
 		for (int i = laserRemoveList.size() - 1; i > -1; i--) {
 			laserList.erase(laserList.begin() + laserRemoveList.at(i));
 		}
 		laserRemoveList.clear();
 
+		if (shipExplosionLife > 0) {
+			shipExplosionLife--;
+			if (shipExplosionLife % 2 == 0) {
+				Explosion* e;
+				e = new Explosion(sf::Vector2f(shipExplosionOrigin.x + rand()%60 - 30, shipExplosionOrigin.y + rand() % 60 - 30), 3);
+				explosionList.push_back(e);
+			}
+		}
+
 		for (int i = asteroidRemoveList.size() - 1; i > -1; i--) {
+			int explosionType = 0;
 			switch (asteroidList.at(asteroidRemoveList.at(i))->life) {
 			case 2:
 				asteroidList.at(asteroidRemoveList.at(i))->spawnChildren(&asteroidList, stageLevel);
@@ -412,20 +445,31 @@ int main()
 			case 1:
 				asteroidList.at(asteroidRemoveList.at(i))->spawnChildren(&asteroidList, stageLevel);
 				asteroidList.at(asteroidRemoveList.at(i))->spawnChildren(&asteroidList, stageLevel);
+				explosionType = 1;
 				break;
 			case 0:
 				gameScore += 10;
+				explosionType = 2;
 				break;
 			}
+			Explosion* e;
+			e = new Explosion(asteroidList.at(asteroidRemoveList.at(i))->origin, explosionType);
+			explosionList.push_back(e);
 			asteroidList.erase(asteroidList.begin() + asteroidRemoveList.at(i));
 		}
 		asteroidRemoveList.clear();
+
+		for (int i = explosionRemoveList.size() - 1; i > -1; i--) {
+			explosionList.erase(explosionList.begin() + explosionRemoveList.at(i));
+		}
+		explosionRemoveList.clear();
 
 		if (asteroidList.size() == 0) {
 			stageLevel++;
 			player.position.x = windowSizeX / 2 - player.width / 2;
 			player.position.y = windowSizeY / 2 - player.length / 2;
 			player.invincibleTime = 200;
+			laserList.clear();
 			createStage(&asteroidList);
 		}
 

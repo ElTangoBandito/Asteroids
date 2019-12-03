@@ -158,12 +158,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Asteroid.cpp" />
+    <ClCompile Include="Explosion.cpp" />
     <ClCompile Include="Laser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asteroid.h" />
+    <ClInclude Include="Explosion.h" />
     <ClInclude Include="Laser.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
